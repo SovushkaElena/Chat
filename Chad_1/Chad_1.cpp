@@ -66,11 +66,29 @@ public:
     }
     void show()
     {
-        cout << "\n" << name << "\n" << surname << "\n" << login << "\n" << endl;
+        cout << name << " " << surname << " " << login << " " << endl;
     }
 };
 
-void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex)
+class Admin : public messenger
+{
+public:
+    Admin(string a, string b, string c, string d) : messenger(a, b, c, d) {}
+    void ShowUsers(vector<messenger>& Users)
+    {
+        for (int i = 0; i < Users.size(); i++)
+        {
+            cout << i << " - " << Users[i].getLogin() << " " << Users[i].getName() << " " << Users[i].getSurname() << endl;
+        }
+    }
+    void Murder(int i, vector<messenger>& Users )
+    {
+        Users.erase(Users.begin() + i);
+        cout << "Пользователь удален" << endl;
+    }
+};
+
+void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //стоило, наверное, сделать это методом класса пользователя и переопределить в админе с расширенным функционалом, но время поджимает
 {
     bool kost2 = true;
     while (kost2) { // цикл для выбора действия "написать сообщение", "просмотр ящика", "выход"
@@ -158,14 +176,35 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex)
 
 }
 
-void UI_SignIn(vector<messenger>& Users, Beseda& beseda)
-{
-
+void UI_SignIn(vector<messenger>& Users, Beseda& beseda, Admin& admin)
+{    
     cout << "введите логин: ";
     string log;
     cin >> log;
     bool user_exists = false; // существует ли пользователь
     int user_ndex = -1; // индекс пользователя
+
+    if (log == admin.getLogin())
+    {
+        cout << "введите пароль: ";
+        string pass;
+        cin >> pass;
+        if (pass == admin.getPassword())
+        {
+            for (int i = 0; i < Users.size(); i++)
+            {
+                cout << i << " ";
+                Users[i].show();
+            }
+            cout << "Удалить пользователя под номером: ";
+            int mark;
+            cin >> mark;
+            admin.Murder(mark, Users);
+        }
+
+        else
+            cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+    }
 
     for (int i = 0; i < Users.size(); i++)
     {
@@ -229,14 +268,13 @@ void UI_registration(vector<messenger>& Users)
 
     messenger* User = new messenger(log, pass, nam, surn);
     Users.push_back(*User);
-    delete User;
-    Users[Users.size() - 1].show();
+    delete User;    
 }
 
 void UI()
 {
     vector<messenger> Users;
-
+    Admin* admin = new Admin("root", "root", "Administrator", "admin");
     Beseda* beseda = new Beseda();
 
     int choice;
@@ -254,7 +292,7 @@ void UI()
 
         case 1:
         {
-            UI_SignIn(Users, *beseda);
+            UI_SignIn(Users, *beseda, *admin);
             break;
         }
         case 2:
@@ -268,6 +306,7 @@ void UI()
 
 int main()
 {
+    
     setlocale(LC_ALL, "ru");
     UI();    
 }
