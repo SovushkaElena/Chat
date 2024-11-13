@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -110,9 +111,10 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
                 if (destLogin == Users[j].getLogin())
                 {
                     recipient_exists = true;
-                    cout << "Ваше сообщение: ";
+                    cout << "Введите ваше сообщение: ";
+                    cin.ignore(); // без этой функции программа работает не корректно
                     string text;
-                    cin >> text;
+                    getline(cin, text);
                     message* Mes = new message(text, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
                     Users[j].takeMessage(*Mes);
                     delete Mes;
@@ -145,8 +147,9 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
                 case 1:
                 {
                     cout << "Сообщение: " << endl;
+                    cin.ignore(); // без этой функции программа работает не корректно
                     string groupMessage;
-                    cin >> groupMessage;
+                    getline(cin, groupMessage);
                     message* grMess = new message(groupMessage, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
                     beseda.takeMessage(*grMess);
                     delete grMess;
@@ -248,7 +251,7 @@ void UI_registration(vector<messenger>& Users)
                 if (log == Users[i].getLogin())
                 {
                     cout << "Такой пользователь уже существует, попробуйте еще раз \n";
-                    unique_log = true; //
+                    unique_log = true; 
                     break;
                 }
             }
