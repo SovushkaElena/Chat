@@ -13,6 +13,23 @@ public:
     }
 };
 
+class bad_user : public exception {
+public:
+    const char* what() const noexcept
+    {
+        return "Ошибка, пользователя не существует! ";
+    }
+};
+
+class bad_choice : public exception {
+public:
+    const char* what() const noexcept
+    {
+        return "Ошибка, введите корректное число! ";
+    }
+};
+
+
 class message
 {
     string from;
@@ -123,34 +140,39 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
         {
         case 1:
         {
-            cout << "Впишите пользователя: ";
-            string destLogin;
-            cin >> destLogin;
+            try {
+                cout << "Впишите пользователя: ";
+                string destLogin;
+                cin >> destLogin;
 
-            bool recipient_exists = false; // существует ли получатель
+                bool recipient_exists = false; // существует ли получатель
 
-            for (int j = 0; j < Users.size(); j++)
-            {
-                if (destLogin == Users[j].getLogin())
+                for (int j = 0; j < Users.size(); j++)
                 {
-                    recipient_exists = true;
-                    cout << "Введите ваше сообщение: ";
-                    cin.ignore(); // без этой функции программа работает не корректно
-                    string text;
-                    getline(cin, text);
-                    message* Mes = new message(text, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
-                    Users[j].takeMessage(*Mes);
-                    delete Mes;
-                    cout << "Сообщение отправлено" << endl;
-                    break;
+                    if (destLogin == Users[j].getLogin())
+                    {
+                        recipient_exists = true;
+                        cout << "Введите ваше сообщение: ";
+                        cin.ignore(); // без этой функции программа работает не корректно
+                        string text;
+                        getline(cin, text);
+                        message* Mes = new message(text, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
+                        Users[j].takeMessage(*Mes);
+                        delete Mes;
+                        cout << "Сообщение отправлено" << endl;
+                        break;
+                    }
                 }
+                if (!recipient_exists) // если получателя не существует или еще не создали
+                {
+                    throw bad_user();
+                }
+                break;
             }
-            if (!recipient_exists) // если получателя не существует или еще не создали
-            {
-                cout << "Ошибка, пользователя не существует!" << endl;
-                continue;
+            catch(bad_user& bu){
+                cout << bu.what() << endl;
             }
-            break;
+            
         }
         case 2:
         {
@@ -232,29 +254,35 @@ void UI_SignIn(vector<messenger>& Users, Beseda& beseda, Admin& admin)
             cout << "Неверный пароль! Попробуйте еще раз:" << endl;
     }
 
-    for (int i = 0; i < Users.size(); i++)
-    {
-        if (log == Users[i].getLogin())
+    try {
+        for (int i = 0; i < Users.size(); i++)
         {
-            user_exists = true;
-            user_ndex = i;
-            cout << "введите пароль: ";
-            string pass;
-            cin >> pass;
-            if (pass == Users[i].getPassword())
+            if (log == Users[i].getLogin())
             {
-                UI_Actions(Users, beseda, user_ndex);
+                user_exists = true;
+                user_ndex = i;
+                cout << "введите пароль: ";
+                string pass;
+                cin >> pass;
+                if (pass == Users[i].getPassword())
+                {
+                    UI_Actions(Users, beseda, user_ndex);
+                }
+                else {
+                    cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+                }
+                break;
             }
-            else {
-                cout << "Неверный пароль! Попробуйте еще раз:" << endl;
-            }
-            break;
-        }
 
+        }
+        if (!user_exists) { // если пользователя не существует
+            throw bad_user();
+        }
     }
-    if (!user_exists) { // если пользователя не существует
-        cout << "Ошибка, пользователя не существует!" << endl;
+    catch (bad_user& bu) {
+        cout << bu.what() << endl;
     }
+    
     
 }
 
@@ -307,26 +335,31 @@ void UI()
     bool kost = true;
     while (kost)
     {
-        cout << "1 - войти\n2 - зарегистрироваться" << endl;
-        cin >> choice;
-        if (choice != 1 && choice != 2) { // проверка на правильность вводимого числа
-            cout << "Ошибка, введите корректное число! " << endl;
-            continue;
-        }
-        switch (choice) //то, что в блоках потом в функции можно закинуть и расчитстить main
-        {
+        try {
+            cout << "1 - войти\n2 - зарегистрироваться" << endl;
+            cin >> choice;
+            if (choice != 1 && choice != 2) { // проверка на правильность вводимого числа
+                throw bad_choice();
+            }
+            switch (choice) //то, что в блоках потом в функции можно закинуть и расчитстить main
+            {
 
-        case 1:
-        {
-            UI_SignIn(Users, *beseda, *admin);
-            break;
+            case 1:
+            {
+                UI_SignIn(Users, *beseda, *admin);
+                break;
+            }
+            case 2:
+            {
+                UI_registration(Users);
+                break;
+            }
+            }
         }
-        case 2:
-        {
-            UI_registration(Users);
-            break;
+        catch (bad_choice& bc) {
+            cout << bc.what() << endl;
         }
-        }
+       
     }
 }
 
