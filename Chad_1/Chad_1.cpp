@@ -4,6 +4,15 @@
 
 using namespace std;
 
+class bad_range : public exception
+{
+public:
+    virtual const char* what() const noexcept override
+    {
+        return "Выход за пределы вектора";
+    }
+};
+
 class message
 {
     string from;
@@ -84,8 +93,22 @@ public:
     }
     void Murder(int i, vector<messenger>& Users )
     {
-        Users.erase(Users.begin() + i);
-        cout << "Пользователь удален" << endl;
+        try
+        {
+            if (i < Users.size())
+            {
+                Users.erase(Users.begin() + i);
+                cout << "Пользователь удален" << endl;
+            }
+            else
+                throw bad_range();
+            
+        }
+        catch (bad_range& br)
+        {
+            cout << br.what() << endl;
+        }
+        
     }
 };
 
