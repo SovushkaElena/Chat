@@ -101,14 +101,14 @@ class Admin : public messenger
 {
 public:
     Admin(string a, string b, string c, string d) : messenger(a, b, c, d) {}
-    void ShowUsers(vector<messenger>& Users)
+    void ShowUsers(vector<messenger>& Users) //показывает всех существующих пользователей
     {
         for (int i = 0; i < Users.size(); i++)
         {
             cout << i << " - " << Users[i].getLogin() << " " << Users[i].getName() << " " << Users[i].getSurname() << endl;
         }
     }
-    void Murder(int i, vector<messenger>& Users )
+    void Murder(int i, vector<messenger>& Users ) //метод удаления указанного пользователя из вектора
     {
         try
         {
@@ -364,8 +364,7 @@ void UI()
 }
 
 int main()
-{
-    
+{    
     setlocale(LC_ALL, "ru");
     UI();    
 }
