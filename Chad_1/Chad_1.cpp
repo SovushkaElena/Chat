@@ -29,52 +29,14 @@ public:
     }
 };
 
-
-class message
-{
-    string from;
-    string text;
-public:
-    message(string _text, string _from) : from(_from), text(_text) {}
-    void show()
-    {
-        cout << "\n" << from << ": " << text << endl;
-    }
-};
-
-class Beseda
-{
-    vector<message> mailBox;
-public:
-    void showMailbox()
-    {
-        if (mailBox.empty())
-        {
-            cout << "Новых сообщений нет" << endl;
-        }
-        for (int i = 0; i < mailBox.size(); i++)
-        {
-            mailBox[i].show();
-        }
-    }
-    void takeMessage(message mess)
-    {
-        mailBox.push_back(mess);
-    }
-};
-
-class messenger : public Beseda //юзер - наследник беседы, а чово бы и нет?) ему, как наследнику, добавляются логин пароль и т.д
-{
+class User {
+protected:
     string login;
     string password;
     string name, surname;
-    vector<message> mailBox;
 public:
+    User(string _login, string _password, string _name, string _surname) : login(_login), password(_password), name(_name), surname(_surname){}
 
-    messenger(string _login, string _password, string _name, string _surname) : login(_login), password(_password), name(_name), surname(_surname)
-    {
-        cout << "пользователь " << _name << " " << _surname << " создан" << endl;
-    }
     string getLogin() const
     {
         return login;
@@ -91,31 +53,97 @@ public:
     {
         return surname;
     }
-    void show()
-    {
-        cout << name << " " << surname << " " << login << " " << endl;
+    bool сheckLogin(const string& _login) const {
+        return login == _login;
+    }
+    bool сheckPassword(const string& _password) const {
+        return password == _password;
     }
 };
 
-class Admin : public messenger
+
+class Message
 {
+    string from;
+    string text;
 public:
-    Admin(string a, string b, string c, string d) : messenger(a, b, c, d) {}
-    void ShowUsers(vector<messenger>& Users) //показывает всех существующих пользователей
+    Message(string _text, string _from) : from(_from), text(_text) {}
+
+    void show() const
+    {
+        std::cout << "\n" << from << ": " << text << endl;
+    }
+};
+
+class Beseda
+{
+    vector<Message> mailBox;
+public:
+    void showMailbox()
+    {
+        if (mailBox.empty())
+        {
+            std::cout << "Новых сообщений нет" << endl;
+        }
+        for (const auto& Mes : mailBox)
+        {
+            Mes.show();
+        }
+    }
+    void takeMessage(Message mess)
+    {
+        mailBox.push_back(mess);
+    }
+};
+
+class Messenger : public User 
+{
+    vector<Message> mailBox;
+
+public:
+
+    Messenger(const string& _login, const string& _password, const string& _name, const string& _surname) : User (_login, _password, _name, _surname)
+    {
+        std::cout << "Пользователь " << _name << " " << _surname << " создан" << endl;
+    }
+  
+    void takeMessage(const Message& mess)
+    {
+        mailBox.push_back(mess);
+    }
+
+    void showMailbox()
+    {
+        if (mailBox.empty())
+        {
+            std::cout << "Новых сообщений нет" << endl;
+        }
+        for (const auto& Mes : mailBox)
+        {
+            Mes.show();
+        }
+    }    
+};
+
+class Admin : public User {
+public:
+    Admin(const string& _login, const string& _password, const string& _name, const string& _surname) : User(_login, _password, _name, _surname){}
+
+    void ShowUsers(const vector<Messenger>& Users) //показывает всех существующих пользователей
     {
         for (int i = 0; i < Users.size(); i++)
         {
-            cout << i << " - " << Users[i].getLogin() << " " << Users[i].getName() << " " << Users[i].getSurname() << endl;
+            std::cout << i << " - " << Users[i].getLogin() << " " << Users[i].getName() << " " << Users[i].getSurname() << endl;
         }
     }
-    void Murder(int i, vector<messenger>& Users ) //метод удаления указанного пользователя из вектора
+    void Murder(int i, vector<Messenger>& Users ) //метод удаления указанного пользователя из вектора
     {
         try
         {
             if (i < Users.size())
             {
                 Users.erase(Users.begin() + i);
-                cout << "Пользователь удален" << endl;
+                std::cout << "Пользователь удален" << endl;
             }
             else
                 throw bad_range();
@@ -123,43 +151,42 @@ public:
         }
         catch (bad_range& br)
         {
-            cout << br.what() << endl;
+            std::cout << br.what() << endl;
         }
         
     }
 };
 
-void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //стоило, наверное, сделать это методом класса пользователя и переопределить в админе с расширенным функционалом, но время поджимает
+void UI_Actions(vector<Messenger>& Users, Beseda& beseda, Messenger& current_user) //стоило, наверное, сделать это методом класса пользователя и переопределить в админе с расширенным функционалом, но время поджимает
 {
     bool kost2 = true;
     while (kost2) { // цикл для выбора действия "написать сообщение", "просмотр ящика", "выход"
-        cout << "1 - написать сообщение\n2 - просмотр ящика\n3 - общий чат\n4 - выход" << endl;
+        std::cout << "1 - написать сообщение\n2 - просмотр ящика\n3 - общий чат\n4 - выход" << endl;
         short choice2;
-        cin >> choice2;
+        std::cin >> choice2;
         switch (choice2)
         {
         case 1:
         {
             try {
-                cout << "Впишите пользователя: ";
+                std::cout << "Введите логин получателя: ";
                 string destLogin;
-                cin >> destLogin;
+                std::cin >> destLogin;
 
                 bool recipient_exists = false; // существует ли получатель
 
-                for (int j = 0; j < Users.size(); j++)
+                for (auto& user : Users) // перебор вектора
                 {
-                    if (destLogin == Users[j].getLogin())
+                    if (user.сheckLogin(destLogin))
                     {
                         recipient_exists = true;
-                        cout << "Введите ваше сообщение: ";
-                        cin.ignore(); // без этой функции программа работает не корректно
+                        std::cout << "Введите ваше сообщение: ";
+                        std::cin.ignore(); // без этой функции программа работает не корректно
                         string text;
-                        getline(cin, text);
-                        message* Mes = new message(text, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
-                        Users[j].takeMessage(*Mes);
-                        delete Mes;
-                        cout << "Сообщение отправлено" << endl;
+                        std::getline(std::cin, text);
+                        Message Mes (text, current_user.getName() + " " + current_user.getSurname());
+                        user.takeMessage(Mes);
+                        std::cout << "Сообщение отправлено" << endl;
                         break;
                     }
                 }
@@ -170,13 +197,13 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
                 break;
             }
             catch(bad_user& bu){
-                cout << bu.what() << endl;
+                std::cout << bu.what() << endl;
             }
             
         }
         case 2:
         {
-            Users[user_ndex].showMailbox(); //если ящик пуст - об этом напишет
+            current_user.showMailbox(); //если ящик пуст - об этом напишет
             break; //чтоб прога не падала
         }
         case 3:
@@ -184,27 +211,32 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
             bool kost3 = true;
             while (kost3)
             {
-                cout << "1 - Написать сообщение\n2 - Просмотреть сообщения\n3 - Назад" << endl;
+                std::cout << "1 - Написать сообщение\n2 - Просмотреть сообщения\n3 - Назад" << endl;
                 short choice;
-                cin >> choice;
+                std::cin >> choice;
                 switch (choice)
                 {
                 case 1:
                 {
-                    cout << "Сообщение: " << endl;
-                    cin.ignore(); // без этой функции программа работает не корректно
+                    std::cout << "Сообщение: " << endl;
+                    std::cin.ignore(); // без этой функции программа работает не корректно
                     string groupMessage;
-                    getline(cin, groupMessage);
-                    message* grMess = new message(groupMessage, (Users[user_ndex].getName() + " " + Users[user_ndex].getSurname()));
-                    beseda.takeMessage(*grMess);
-                    delete grMess;
+                    std::getline(std::cin, groupMessage);
+                    Message grMess (groupMessage, current_user.getName() + " " + current_user.getSurname());
+                    beseda.takeMessage(grMess);
                     break;
                 }
                 case 2:
+                {
                     beseda.showMailbox();
                     break;
-                case 3:
+                }
+                case 3: {
                     kost3 = false;
+                    break;
+                }      
+                default:
+                    std::cout << "Неверный выбор, попробуйте еще раз" << endl;
                     break;
                 }
             }
@@ -217,97 +249,77 @@ void UI_Actions(vector<messenger>& Users, Beseda& beseda, int user_ndex) //ст�
             break;
         }
         default:
-            cout << "Неверный выбор, попробуйте еще раз" << endl;
+            std::cout << "Неверный выбор, попробуйте еще раз" << endl;
             break;
         }
     }
 
 }
 
-void UI_SignIn(vector<messenger>& Users, Beseda& beseda, Admin& admin)
+void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
 {    
-    cout << "введите логин: ";
+    std::cout << "Введите логин: ";
     string log;
-    cin >> log;
-    bool user_exists = false; // существует ли пользователь
-    int user_ndex = -1; // индекс пользователя
+    std::cin >> log;    
 
-    if (log == admin.getLogin())
+    if (admin.сheckLogin(log))
     {
-        cout << "введите пароль: ";
+        std::cout << "Введите пароль: ";
         string pass;
-        cin >> pass;
-        if (pass == admin.getPassword())
+        std::cin >> pass;
+        if (admin.сheckPassword(pass))
         {
-            for (int i = 0; i < Users.size(); i++)
-            {
-                cout << i << " ";
-                Users[i].show();
-            }
-            cout << "Удалить пользователя под номером: ";
+            admin.ShowUsers(Users);
+            std::cout << "Удалить пользователя под номером: ";
             int mark;
-            cin >> mark;
+            std::cin >> mark;
             admin.Murder(mark, Users);
         }
-
-        else
-            cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+        else {
+            std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+        }
+        return; 
     }
-
-    try {
-        for (int i = 0; i < Users.size(); i++)
+    
+    for (auto& user : Users)
+    {
+        if (user.сheckLogin(log)) 
         {
-            if (log == Users[i].getLogin())
+            std::cout << "Введите пароль: ";
+            std::string pass;
+            std::cin >> pass;
+            if (user.сheckPassword(pass))
             {
-                user_exists = true;
-                user_ndex = i;
-                cout << "введите пароль: ";
-                string pass;
-                cin >> pass;
-                if (pass == Users[i].getPassword())
-                {
-                    UI_Actions(Users, beseda, user_ndex);
-                }
-                else {
-                    cout << "Неверный пароль! Попробуйте еще раз:" << endl;
-                }
-                break;
+                UI_Actions(Users, beseda, user);
             }
+            else {
+                std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+            }
+            return;
+        }
 
-        }
-        if (!user_exists) { // если пользователя не существует
-            throw bad_user();
-        }
     }
-    catch (bad_user& bu) {
-        cout << bu.what() << endl;
-    }
-    
-    
 }
 
-void UI_registration(vector<messenger>& Users)
+void UI_registration(vector<Messenger>& Users)
 {
     string log;
     bool unique_log = true;
+
     while (unique_log) { // если логин занят, то цикл будет работать до тех пор, пока пользователь не введет новый логин
         cout << "Введите логин: ";
         cin >> log;
         unique_log = false;
-
-        if (!Users.empty())
+              
+        for (const auto& user : Users) // перебор вектора
         {
-            for (int i = 0; i < Users.size(); i++) // проверка логина на уникальность
+            if (user.сheckLogin(log))
             {
-                if (log == Users[i].getLogin())
-                {
-                    cout << "Такой пользователь уже существует, попробуйте еще раз \n";
-                    unique_log = true; 
-                    break;
-                }
+                cout << "Такой пользователь уже существует, попробуйте еще раз \n";
+                unique_log = true; 
+                break;
             }
         }
-
     }
 
     cout << "Введите имя: ";
@@ -319,29 +331,27 @@ void UI_registration(vector<messenger>& Users)
     cout << "Введите пароль: ";
     string pass;
     cin >> pass;
-
-    messenger* User = new messenger(log, pass, nam, surn);
-    Users.push_back(*User);
-    delete User;    
+        
+    Users.emplace_back(log, pass, nam, surn);   
 }
 
 void UI()
 {
-    vector<messenger> Users;
+    vector<Messenger> Users;
     Admin* admin = new Admin("root", "root", "Administrator", "admin");
     Beseda* beseda = new Beseda();
-
-    int choice;
+        
     bool kost = true;
     while (kost)
     {
         try {
             cout << "1 - войти\n2 - зарегистрироваться" << endl;
+            int choice;
             cin >> choice;
             if (choice != 1 && choice != 2) { // проверка на правильность вводимого числа
                 throw bad_choice();
             }
-            switch (choice) //то, что в блоках потом в функции можно закинуть и расчитстить main
+            switch (choice) 
             {
 
             case 1:
@@ -359,12 +369,15 @@ void UI()
         catch (bad_choice& bc) {
             cout << bc.what() << endl;
         }
-       
     }
+    delete admin;
+    delete beseda;
 }
 
 int main()
 {    
     setlocale(LC_ALL, "ru");
     UI();    
+
+    return 0;
 }
