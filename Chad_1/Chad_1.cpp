@@ -35,6 +35,14 @@ public:
         return "Ошибка, в вашей строке есть пробел! ";
     }
 };
+class empty_string : public exception
+{
+public:
+    const char* what() const noexcept
+    {
+        return "Ошибка, строка не может быть пустой ";
+    }
+};
 
 class User {
 protected:
@@ -336,9 +344,11 @@ void UI_registration(vector<Messenger>& Users)
             std::cout << "Введите логин: ";
             std::cin.ignore(); 
             std::getline(std::cin, log);
-            //std::cin >> log;
-            if (log.find(' ') != std::string::npos)
+            
+            if (log.find(' ') != std::string::npos) //проверка строки на наличие пробелов
                 throw bad_space();
+            if (log[0] == '\0') //проверка строки на пустоту
+                throw empty_string();
 
             unique_log = false;
 
@@ -360,6 +370,8 @@ void UI_registration(vector<Messenger>& Users)
         std::getline(std::cin, nam);
         if (nam.find(' ') != string::npos)
             throw bad_space();
+        if (nam[0] == '\0')
+            throw empty_string();
         std::cout << "Введите фамилию: ";
         string surn;
         
@@ -367,6 +379,8 @@ void UI_registration(vector<Messenger>& Users)
         std::getline(std::cin, surn);
         if (surn.find(' ') != string::npos)
             throw bad_space();
+        if (surn[0] == '\0')
+            throw empty_string();
         std::cout << "Введите пароль: ";
         string pass;
         
@@ -374,12 +388,18 @@ void UI_registration(vector<Messenger>& Users)
         std::getline(std::cin, pass);
         if (pass.find(' ') != string::npos)
             throw bad_space();
+        if (pass[0] == '\0')
+            throw empty_string();
 
         Users.emplace_back(log, pass, nam, surn);
     }
     catch (bad_space& bs)
     {
         std::cout << bs.what() << endl;
+    }
+    catch (empty_string& es)
+    {
+        std::cout << es.what() << endl;
     }
 }
 
