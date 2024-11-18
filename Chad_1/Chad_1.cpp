@@ -305,29 +305,25 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
             }
             return;
         }
-        if (!recipient_exists) // если получателя не существует или еще не создали
-        {
-            throw bad_user();
-        }
         for (auto& user : Users)
         {            
-                if (user.сheckLogin(log))
+            if (user.сheckLogin(log))
+            {
+                std::cout << "Введите пароль: ";
+                std::string pass;
+                std::cin >> pass;
+                if (user.сheckPassword(pass))
                 {
-                    std::cout << "Введите пароль: ";
-                    std::string pass;
-                    std::cin >> pass;
-                    if (user.сheckPassword(pass))
-                    {
-                        UI_Actions(Users, beseda, user);
-                    }
-                    else {
-                        std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
-                    }
-                    return;
+                    UI_Actions(Users, beseda, user);
                 }
-                else
-                    throw bad_user();            
+                else {
+                    std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+                }
+                return;                
+            }            
+                
         }
+        throw bad_user();
     }
     catch (bad_user& bu) {
         std::cout << bu.what() << endl;
@@ -366,25 +362,23 @@ void UI_registration(vector<Messenger>& Users)
         std::cout << "Введите имя: ";
         string nam;        
 
-        std::cin.ignore();
+        
         std::getline(std::cin, nam);
         if (nam.find(' ') != string::npos)
             throw bad_space();
         if (nam[0] == '\0')
             throw empty_string();
         std::cout << "Введите фамилию: ";
-        string surn;
+        string surn;        
         
-        std::cin.ignore();
         std::getline(std::cin, surn);
         if (surn.find(' ') != string::npos)
             throw bad_space();
         if (surn[0] == '\0')
             throw empty_string();
         std::cout << "Введите пароль: ";
-        string pass;
+        string pass;        
         
-        std::cin.ignore();
         std::getline(std::cin, pass);
         if (pass.find(' ') != string::npos)
             throw bad_space();
