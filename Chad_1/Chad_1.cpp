@@ -28,6 +28,13 @@ public:
         return "Ошибка, введите корректное число! ";
     }
 };
+class bad_space : public exception {
+public:
+    const char* what() const noexcept
+    {
+        return "Ошибка, в вашей строке есть пробел! ";
+    }
+};
 
 class User {
 protected:
@@ -35,6 +42,8 @@ protected:
     string password;
     string name, surname;
 public:
+    virtual void showMailbox() = 0;
+
     User(string _login, string _password, string _name, string _surname) : login(_login), password(_password), name(_name), surname(_surname){}
 
     string getLogin() const
@@ -128,6 +137,8 @@ public:
 class Admin : public User {
 public:
     Admin(const string& _login, const string& _password, const string& _name, const string& _surname) : User(_login, _password, _name, _surname){}
+
+    void showMailbox() override {}    
 
     void ShowUsers(const vector<Messenger>& Users) //показывает всех существующих пользователей
     {
@@ -258,81 +269,118 @@ void UI_Actions(vector<Messenger>& Users, Beseda& beseda, Messenger& current_use
 
 void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
 {    
+    try
+    {
     std::cout << "Введите логин: ";
     string log;
-    std::cin >> log;    
-
-    if (admin.сheckLogin(log))
-    {
-        std::cout << "Введите пароль: ";
-        string pass;
-        std::cin >> pass;
-        if (admin.сheckPassword(pass))
-        {
-            admin.ShowUsers(Users);
-            std::cout << "Удалить пользователя под номером: ";
-            int mark;
-            std::cin >> mark;
-            admin.Murder(mark, Users);
-        }
-        else {
-            std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
-        }
-        return; 
-    }
+    std::cin >> log;
     
-    for (auto& user : Users)
-    {
-        if (user.сheckLogin(log)) 
+    bool recipient_exists = false; // существует ли пользователь   
+    
+        if (admin.сheckLogin(log))
         {
+            recipient_exists = true;
             std::cout << "Введите пароль: ";
-            std::string pass;
-            std::cin >> pass;
-            if (user.сheckPassword(pass))
+            string pass;
+            std::cin >> pass;            
+
+            if (admin.сheckPassword(pass))
             {
-                UI_Actions(Users, beseda, user);
+                admin.ShowUsers(Users);
+                std::cout << "Удалить пользователя под номером: ";
+                int mark;
+                std::cin >> mark;
+                admin.Murder(mark, Users);
             }
             else {
                 std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
             }
             return;
         }
-
+        if (!recipient_exists) // если получателя не существует или еще не создали
+        {
+            throw bad_user();
+        }
+        for (auto& user : Users)
+        {            
+                if (user.сheckLogin(log))
+                {
+                    std::cout << "Введите пароль: ";
+                    std::string pass;
+                    std::cin >> pass;
+                    if (user.сheckPassword(pass))
+                    {
+                        UI_Actions(Users, beseda, user);
+                    }
+                    else {
+                        std::cout << "Неверный пароль! Попробуйте еще раз:" << endl;
+                    }
+                    return;
+                }
+                else
+                    throw bad_user();            
+        }
     }
+    catch (bad_user& bu) {
+        std::cout << bu.what() << endl;
+    }    
 }
 
 void UI_registration(vector<Messenger>& Users)
 {
     string log;
     bool unique_log = true;
+    try 
+    {
+        while (unique_log) { // если логин занят, то цикл будет работать до тех пор, пока пользователь не введет новый логин
+            std::cout << "Введите логин: ";
+            std::cin.ignore(); 
+            std::getline(std::cin, log);
+            //std::cin >> log;
+            if (log.find(' ') != std::string::npos)
+                throw bad_space();
 
-    while (unique_log) { // если логин занят, то цикл будет работать до тех пор, пока пользователь не введет новый логин
-        cout << "Введите логин: ";
-        cin >> log;
-        unique_log = false;
-              
-        for (const auto& user : Users) // перебор вектора
-        {
-            if (user.сheckLogin(log))
+            unique_log = false;
+
+            for (const auto& user : Users) // перебор вектора
             {
-                cout << "Такой пользователь уже существует, попробуйте еще раз \n";
-                unique_log = true; 
-                break;
+                if (user.сheckLogin(log))
+                {
+                    std::cout << "Такой пользователь уже существует, попробуйте еще раз \n";
+                    unique_log = true;
+                    break;
+                }
             }
         }
-    }
 
-    cout << "Введите имя: ";
-    string nam;
-    cin >> nam;
-    cout << "Введите фамилию: ";
-    string surn;
-    cin >> surn;
-    cout << "Введите пароль: ";
-    string pass;
-    cin >> pass;
+        std::cout << "Введите имя: ";
+        string nam;        
+
+        std::cin.ignore();
+        std::getline(std::cin, nam);
+        if (nam.find(' ') != string::npos)
+            throw bad_space();
+        std::cout << "Введите фамилию: ";
+        string surn;
         
-    Users.emplace_back(log, pass, nam, surn);   
+        std::cin.ignore();
+        std::getline(std::cin, surn);
+        if (surn.find(' ') != string::npos)
+            throw bad_space();
+        std::cout << "Введите пароль: ";
+        string pass;
+        
+        std::cin.ignore();
+        std::getline(std::cin, pass);
+        if (pass.find(' ') != string::npos)
+            throw bad_space();
+
+        Users.emplace_back(log, pass, nam, surn);
+    }
+    catch (bad_space& bs)
+    {
+        std::cout << bs.what() << endl;
+    }
 }
 
 void UI()
@@ -345,9 +393,9 @@ void UI()
     while (kost)
     {
         try {
-            cout << "1 - войти\n2 - зарегистрироваться" << endl;
+            std::cout << "1 - войти\n2 - зарегистрироваться" << endl;
             int choice;
-            cin >> choice;
+            std::cin >> choice;
             if (choice != 1 && choice != 2) { // проверка на правильность вводимого числа
                 throw bad_choice();
             }
@@ -367,7 +415,7 @@ void UI()
             }
         }
         catch (bad_choice& bc) {
-            cout << bc.what() << endl;
+            std::cout << bc.what() << endl;
         }
     }
     delete admin;
