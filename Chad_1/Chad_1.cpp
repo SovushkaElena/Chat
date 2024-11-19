@@ -110,8 +110,13 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
     try
     {
     std::cout << "Введите логин: ";
-    string log;
-    std::cin >> log;
+    string log;    
+    std::cin.ignore();
+    std::getline(std::cin, log);
+    if (log.find(' ') != string::npos)
+        throw bad_space();
+    if (log[0] == '\0') //проверка строки на пустоту
+        throw empty_string();
     
     bool recipient_exists = false; // существует ли пользователь   
     
@@ -119,8 +124,13 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
         {
             recipient_exists = true;
             std::cout << "Введите пароль: ";
-            string pass;
-            std::cin >> pass;            
+            string pass;            
+            std::cin.ignore();
+            std::getline(std::cin, pass);
+            if (pass.find(' ') != string::npos)
+                throw bad_space();
+            if (pass[0] == '\0') //проверка строки на пустоту
+                throw empty_string();
 
             if (admin.сheckPassword(pass))
             {
@@ -141,7 +151,11 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
             {
                 std::cout << "Введите пароль: ";
                 std::string pass;
-                std::cin >> pass;
+                std::getline(std::cin, pass);
+                if (pass.find(' ') != string::npos)
+                    throw bad_space();
+                if (pass[0] == '\0') //проверка строки на пустоту
+                    throw empty_string();
                 if (user.сheckPassword(pass))
                 {
                     UI_Actions(Users, beseda, user);
@@ -157,7 +171,14 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
     }
     catch (bad_user& bu) {
         std::cout << bu.what() << endl;
-    }    
+    }
+    catch (empty_string& es) {
+        std::cout << es.what() << endl;
+    }
+    catch (bad_space& bs)
+    {
+        std::cout << bs.what() << endl;
+    }
 }
 
 void UI_registration(vector<Messenger>& Users)
