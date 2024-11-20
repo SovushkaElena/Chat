@@ -104,6 +104,13 @@ void UI_Actions(vector<Messenger>& Users, Beseda& beseda, Messenger& current_use
     }
 
 }
+void emptySpace(string str)
+{
+    if (str.find(' ') != string::npos) //проверка строки на пробелы в ней
+        throw bad_space();
+    if (str[0] == '\0') //проверка строки на пустоту
+        throw empty_string();
+}
 
 void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
 {    
@@ -113,10 +120,7 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
     string log;    
     std::cin.ignore();
     std::getline(std::cin, log);
-    if (log.find(' ') != string::npos)
-        throw bad_space();
-    if (log[0] == '\0') //проверка строки на пустоту
-        throw empty_string();
+    emptySpace(log);
     
     bool recipient_exists = false; // существует ли пользователь   
     
@@ -127,11 +131,8 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
             string pass;            
             std::cin.ignore();
             std::getline(std::cin, pass);
-            if (pass.find(' ') != string::npos)
-                throw bad_space();
-            if (pass[0] == '\0') //проверка строки на пустоту
-                throw empty_string();
-
+            emptySpace(pass);
+            
             if (admin.сheckPassword(pass))
             {
                 admin.ShowUsers(Users);
@@ -152,10 +153,8 @@ void UI_SignIn(vector<Messenger>& Users, Beseda& beseda, Admin& admin)
                 std::cout << "Введите пароль: ";
                 std::string pass;
                 std::getline(std::cin, pass);
-                if (pass.find(' ') != string::npos)
-                    throw bad_space();
-                if (pass[0] == '\0') //проверка строки на пустоту
-                    throw empty_string();
+                emptySpace(pass);
+                
                 if (user.сheckPassword(pass))
                 {
                     UI_Actions(Users, beseda, user);
@@ -192,10 +191,8 @@ void UI_registration(vector<Messenger>& Users)
             std::cin.ignore(); 
             std::getline(std::cin, log);
             
-            if (log.find(' ') != std::string::npos) //проверка строки на наличие пробелов
-                throw bad_space();
-            if (log[0] == '\0') //проверка строки на пустоту
-                throw empty_string();
+            emptySpace(log);
+            
 
             unique_log = false;
 
@@ -212,29 +209,20 @@ void UI_registration(vector<Messenger>& Users)
 
         std::cout << "Введите имя: ";
         string nam;        
-
-        
         std::getline(std::cin, nam);
-        if (nam.find(' ') != string::npos)
-            throw bad_space();
-        if (nam[0] == '\0')
-            throw empty_string();
+        emptySpace(nam);
+        
+
         std::cout << "Введите фамилию: ";
-        string surn;        
-        
+        string surn;                
         std::getline(std::cin, surn);
-        if (surn.find(' ') != string::npos)
-            throw bad_space();
-        if (surn[0] == '\0')
-            throw empty_string();
-        std::cout << "Введите пароль: ";
-        string pass;        
+        emptySpace(surn);
         
+        std::cout << "Введите пароль: ";
+        string pass;       
         std::getline(std::cin, pass);
-        if (pass.find(' ') != string::npos)
-            throw bad_space();
-        if (pass[0] == '\0')
-            throw empty_string();
+        emptySpace(pass);
+        
 
         Users.emplace_back(log, pass, nam, surn);
     }
